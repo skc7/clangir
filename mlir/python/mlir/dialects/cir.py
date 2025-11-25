@@ -22,6 +22,12 @@ from .._mlir_libs._cirDialect import (
     FP128Type as _CIRFP128Type,
     ComplexType as _CIRComplexType,
     FuncType as _CIRFuncType,
+    VectorType as _CIRVectorType,
+    RecordType as _CIRRecordType,
+    MethodType as _CIRMethodType,
+    DataMemberType as _CIRDataMemberType,
+    VPtrType as _CIRVPtrType,
+    ExceptionType as _CIRExceptionType,
 )
 
 # Import all CIR native attributes
@@ -232,6 +238,107 @@ def FuncType(inputs: list, return_type: Type = None, is_vararg: bool = False) ->
     # Convert None return type to VoidType for native binding
     ret_type = return_type if return_type is not None else VoidType()
     return _CIRFuncType.get(inputs, ret_type, is_vararg)
+
+
+def VectorType(element_type: Type, size: int) -> Type:
+    """
+    Create a CIR vector type.
+
+    Args:
+        element_type: The element type (must be a scalar CIR type)
+        size: Number of elements (must be positive)
+
+    Returns:
+        A CIR vector type (!cir.vector<element_type x size>)
+
+    Examples:
+        >>> vec = VectorType(IntType(8, False), 4)  # !cir.vector<!u8i x 4>
+        >>> vec = VectorType(FloatType(), 2)  # !cir.vector<!cir.float x 2>
+    """
+    return _CIRVectorType.get(element_type, size)
+
+
+def RecordType(members: list, packed: bool = False, padded: bool = False,
+               kind: bool = False) -> Type:
+    """
+    Create a CIR anonymous record type.
+
+    Args:
+        members: List of member types
+        packed: Whether the record is packed (default: False)
+        padded: Whether the record is padded (default: False)
+        kind: Record kind - False for struct, True for class (default: False)
+
+    Returns:
+        A CIR anonymous record type (!cir.record<...>)
+
+    Examples:
+        >>> struct = RecordType([s32(), s64()])  # anonymous struct
+        >>> cls = RecordType([s32()], kind=True)  # anonymous class
+        >>> packed = RecordType([s8(), s32()], packed=True)  # packed struct
+    """
+    return _CIRRecordType.get(members, packed, padded, kind)
+
+
+def MethodType(member_func_type: Type, class_type: Type) -> Type:
+    """
+    Create a CIR method type (pointer-to-member-function).
+
+    Args:
+        member_func_type: The function type (!cir.func<...>)
+        class_type: The class type (!cir.record<...>)
+
+    Returns:
+        A CIR method type (!cir.method<func_type in class_type>)
+
+    Example:
+        >>> cls = RecordType("MyClass", [s32()])
+        >>> func = FuncType([s32()], BoolType())
+        >>> method = MethodType(func, cls)
+    """
+    return _CIRMethodType.get(member_func_type, class_type)
+
+
+def DataMemberType(member_type: Type, class_type: Type) -> Type:
+    """
+    Create a CIR data member type (pointer-to-data-member).
+
+    Args:
+        member_type: The member type
+        class_type: The class type (!cir.record<...>)
+
+    Returns:
+        A CIR data member type (!cir.data_member<member_type in class_type>)
+
+    Example:
+        >>> cls = RecordType("MyClass", [s32()])
+        >>> data_member = DataMemberType(s32(), cls)
+    """
+    return _CIRDataMemberType.get(member_type, class_type)
+
+
+def VPtrType() -> Type:
+    """
+    Create a CIR vptr type.
+
+    Returns:
+        A CIR vptr type (!cir.vptr)
+
+    This type is used for the vptr member of C++ objects with virtual functions.
+    """
+    return _CIRVPtrType.get()
+
+
+def ExceptionType() -> Type:
+    """
+    Create a CIR exception info type.
+
+    Returns:
+        A CIR exception info type (!cir.exception)
+
+    This type holds information for an inflight exception.
+    """
+    return _CIRExceptionType.get()
 
 
 # Common float type aliases

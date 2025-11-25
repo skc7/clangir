@@ -176,6 +176,97 @@ NB_MODULE(_cirDialect, m) {
       nb::arg("context") = nb::none());
 
   //===--------------------------------------------------------------------===//
+  // CIR Vector Type
+  //===--------------------------------------------------------------------===//
+
+  auto vectorType =
+      mlir_type_subclass(m, "VectorType", mlirTypeIsACIRVectorType);
+  vectorType.def_classmethod(
+      "get",
+      [](const nb::object &cls, MlirType elementType, uint64_t size) {
+        return cls(mlirCIRVectorTypeGet(elementType, size));
+      },
+      "Create a CIR vector type", nb::arg("cls"), nb::arg("element_type"),
+      nb::arg("size"));
+
+  //===--------------------------------------------------------------------===//
+  // CIR Record Type
+  //===--------------------------------------------------------------------===//
+
+  auto recordType =
+      mlir_type_subclass(m, "RecordType", mlirTypeIsACIRRecordType);
+  recordType.def_classmethod(
+      "get",
+      [](const nb::object &cls, nb::list members, bool packed, bool padded,
+         bool kind, MlirContext ctx) {
+        std::vector<MlirType> memberTypes;
+        memberTypes.reserve(nb::len(members));
+        for (nb::handle member : members) {
+          memberTypes.push_back(nb::cast<MlirType>(member));
+        }
+        return cls(mlirCIRRecordTypeGet(
+            ctx, memberTypes.size(), memberTypes.data(), packed, padded, kind));
+      },
+      "Create a CIR identified and complete record type", nb::arg("cls"),
+      nb::arg("members"), nb::arg("packed") = false, nb::arg("padded") = false,
+      nb::arg("kind") = false, nb::arg("context") = nb::none());
+
+  //===--------------------------------------------------------------------===//
+  // CIR Method Type
+  //===--------------------------------------------------------------------===//
+
+  auto methodType =
+      mlir_type_subclass(m, "MethodType", mlirTypeIsACIRMethodType);
+  methodType.def_classmethod(
+      "get",
+      [](const nb::object &cls, MlirType memberFuncTy, MlirType clsTy) {
+        return cls(mlirCIRMethodTypeGet(memberFuncTy, clsTy));
+      },
+      "Create a CIR method type (pointer-to-member-function)", nb::arg("cls"),
+      nb::arg("member_func_type"), nb::arg("class_type"));
+
+  //===--------------------------------------------------------------------===//
+  // CIR DataMember Type
+  //===--------------------------------------------------------------------===//
+
+  auto dataMemberType =
+      mlir_type_subclass(m, "DataMemberType", mlirTypeIsACIRDataMemberType);
+  dataMemberType.def_classmethod(
+      "get",
+      [](const nb::object &cls, MlirType memberTy, MlirType clsTy) {
+        return cls(mlirCIRDataMemberTypeGet(memberTy, clsTy));
+      },
+      "Create a CIR data member type (pointer-to-data-member)", nb::arg("cls"),
+      nb::arg("member_type"), nb::arg("class_type"));
+
+  //===--------------------------------------------------------------------===//
+  // CIR VPtr Type
+  //===--------------------------------------------------------------------===//
+
+  auto vptrType = mlir_type_subclass(m, "VPtrType", mlirTypeIsACIRVPtrType);
+  vptrType.def_classmethod(
+      "get",
+      [](const nb::object &cls, MlirContext ctx) {
+        return cls(mlirCIRVPtrTypeGet(ctx));
+      },
+      "Create a CIR vptr type", nb::arg("cls"),
+      nb::arg("context") = nb::none());
+
+  //===--------------------------------------------------------------------===//
+  // CIR Exception Type
+  //===--------------------------------------------------------------------===//
+
+  auto exceptionType =
+      mlir_type_subclass(m, "ExceptionType", mlirTypeIsACIRExceptionType);
+  exceptionType.def_classmethod(
+      "get",
+      [](const nb::object &cls, MlirContext ctx) {
+        return cls(mlirCIRExceptionTypeGet(ctx));
+      },
+      "Create a CIR exception info type", nb::arg("cls"),
+      nb::arg("context") = nb::none());
+
+  //===--------------------------------------------------------------------===//
   // CIR Attributes
   //===--------------------------------------------------------------------===//
 

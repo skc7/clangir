@@ -126,6 +126,73 @@ MLIR_CAPI_EXPORTED MlirType mlirCIRFuncTypeGet(MlirContext ctx,
 MLIR_CAPI_EXPORTED bool mlirTypeIsACIRFuncType(MlirType type);
 
 //===----------------------------------------------------------------------===//
+// CIR Vector Type
+//===----------------------------------------------------------------------===//
+
+/// Creates a CIR vector type.
+MLIR_CAPI_EXPORTED MlirType mlirCIRVectorTypeGet(MlirType elementType,
+                                                 uint64_t size);
+
+/// Checks if the given type is a CIR vector type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRVectorType(MlirType type);
+
+//===----------------------------------------------------------------------===//
+// CIR Record Type
+//===----------------------------------------------------------------------===//
+
+/// Creates a CIR identified and complete record type.
+MLIR_CAPI_EXPORTED MlirType mlirCIRRecordTypeGet(MlirContext ctx,
+                                                 intptr_t numMembers,
+                                                 MlirType const *members,
+                                                 bool packed, bool padded,
+                                                 bool kind);
+
+/// Checks if the given type is a CIR record type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRRecordType(MlirType type);
+
+//===----------------------------------------------------------------------===//
+// CIR Method Type
+//===----------------------------------------------------------------------===//
+
+/// Creates a CIR method type (pointer-to-member-function).
+MLIR_CAPI_EXPORTED MlirType mlirCIRMethodTypeGet(MlirType memberFuncTy,
+                                                 MlirType clsTy);
+
+/// Checks if the given type is a CIR method type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRMethodType(MlirType type);
+
+//===----------------------------------------------------------------------===//
+// CIR DataMember Type
+//===----------------------------------------------------------------------===//
+
+/// Creates a CIR data member type (pointer-to-data-member).
+MLIR_CAPI_EXPORTED MlirType mlirCIRDataMemberTypeGet(MlirType memberTy,
+                                                     MlirType clsTy);
+
+/// Checks if the given type is a CIR data member type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRDataMemberType(MlirType type);
+
+//===----------------------------------------------------------------------===//
+// CIR VPtr Type
+//===----------------------------------------------------------------------===//
+
+/// Creates a CIR vptr type.
+MLIR_CAPI_EXPORTED MlirType mlirCIRVPtrTypeGet(MlirContext ctx);
+
+/// Checks if the given type is a CIR vptr type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRVPtrType(MlirType type);
+
+//===----------------------------------------------------------------------===//
+// CIR Exception Type
+//===----------------------------------------------------------------------===//
+
+/// Creates a CIR exception info type.
+MLIR_CAPI_EXPORTED MlirType mlirCIRExceptionTypeGet(MlirContext ctx);
+
+/// Checks if the given type is a CIR exception type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRExceptionType(MlirType type);
+
+//===----------------------------------------------------------------------===//
 // CIR Attribute API
 //===----------------------------------------------------------------------===//
 

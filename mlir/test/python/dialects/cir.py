@@ -330,3 +330,71 @@ def testTypeAliases():
     print(f64_alias)
     # CHECK: !cir.double
     print(f64_full)
+
+
+@run
+def test_vector_type():
+    # Vector of integers
+    vec_u8 = cir.VectorType(cir.u8(), 4)
+    # CHECK: !cir.vector<!u8i x 4>
+    print(vec_u8)
+    # Vector of floats
+    vec_f32 = cir.VectorType(cir.FloatType(), 8)
+    # CHECK: !cir.vector<!cir.float x 8>
+    print(vec_f32)
+    # Vector of pointers
+    vec_ptr = cir.VectorType(cir.PointerType(cir.s32()), 2)
+    # CHECK: !cir.vector<!cir.ptr<!s32i> x 2>
+    print(vec_ptr)
+
+
+@run
+def test_record_type():
+    # Anonymous struct
+    anon_struct = cir.RecordType([cir.s32(), cir.s64()])
+    # CHECK: !cir.record<struct {!s32i, !s64i}>
+    print(anon_struct)
+    # Packed struct
+    packed_struct = cir.RecordType([cir.s8(), cir.s32()], packed=True)
+    # CHECK: !cir.record<struct packed {!s8i, !s32i}>
+    print(packed_struct)
+    # Anonymous class
+    anon_class = cir.RecordType([cir.s32()], kind=True)
+    # CHECK: !cir.record<class {!s32i}>
+    print(anon_class)
+
+
+@run
+def test_method_type():
+    # Create a class type
+    cls = cir.RecordType([cir.s32()], kind=True)
+    # Create a function type
+    func = cir.FuncType([cir.s32()], cir.BoolType())
+    # Create method type
+    method = cir.MethodType(func, cls)
+    # CHECK: !cir.method<!cir.func<!s32i -> !cir.bool> in !cir.record<class {!s32i}>>
+    print(method)
+
+
+@run
+def test_data_member_type():
+    # Create a class type
+    cls = cir.RecordType([cir.s32(), cir.s64()], kind=True)
+    # Create data member type for s64
+    data_member = cir.DataMemberType(cir.s64(), cls)
+    # CHECK: !cir.data_member<!s64i in !cir.record<class {!s32i, !s64i}>>
+    print(data_member)
+
+
+@run
+def test_vptr_type():
+    vptr = cir.VPtrType()
+    # CHECK: !cir.vptr
+    print(vptr)
+
+
+@run
+def test_exception_type():
+    exception = cir.ExceptionType()
+    # CHECK: !cir.exception
+    print(exception)

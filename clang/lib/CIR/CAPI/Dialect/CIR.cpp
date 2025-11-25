@@ -155,6 +155,96 @@ bool mlirTypeIsACIRFuncType(MlirType type) {
 }
 
 //===----------------------------------------------------------------------===//
+// CIR Vector Type
+//===----------------------------------------------------------------------===//
+
+MlirType mlirCIRVectorTypeGet(MlirType elementType, uint64_t size) {
+  return wrap(cir::VectorType::get(unwrap(elementType), size));
+}
+
+bool mlirTypeIsACIRVectorType(MlirType type) {
+  return llvm::isa<cir::VectorType>(unwrap(type));
+}
+
+//===----------------------------------------------------------------------===//
+// CIR Record Type
+//===----------------------------------------------------------------------===//
+
+MlirType mlirCIRRecordTypeGet(MlirContext ctx, intptr_t numMembers,
+                              MlirType const *members, bool packed, bool padded,
+                              bool kind) {
+  mlir::MLIRContext *context = unwrap(ctx);
+  SmallVector<mlir::Type, 4> memberTypes;
+  ArrayRef<MlirType> membersRef(members, numMembers);
+  memberTypes.reserve(numMembers);
+  for (MlirType member : membersRef)
+    memberTypes.push_back(unwrap(member));
+
+  cir::RecordType::RecordKind recordKind =
+      kind ? cir::RecordType::RecordKind::Class
+           : cir::RecordType::RecordKind::Struct;
+
+  // Use the internal $_get method for identified complete records
+  return wrap(
+      cir::RecordType::get(context, memberTypes, packed, padded, recordKind));
+}
+
+bool mlirTypeIsACIRRecordType(MlirType type) {
+  return llvm::isa<cir::RecordType>(unwrap(type));
+}
+
+//===----------------------------------------------------------------------===//
+// CIR Method Type
+//===----------------------------------------------------------------------===//
+
+MlirType mlirCIRMethodTypeGet(MlirType memberFuncTy, MlirType clsTy) {
+  auto funcType = mlir::cast<cir::FuncType>(unwrap(memberFuncTy));
+  auto recordType = mlir::cast<cir::RecordType>(unwrap(clsTy));
+  return wrap(cir::MethodType::get(funcType, recordType));
+}
+
+bool mlirTypeIsACIRMethodType(MlirType type) {
+  return llvm::isa<cir::MethodType>(unwrap(type));
+}
+
+//===----------------------------------------------------------------------===//
+// CIR DataMember Type
+//===----------------------------------------------------------------------===//
+
+MlirType mlirCIRDataMemberTypeGet(MlirType memberTy, MlirType clsTy) {
+  auto recordType = mlir::cast<cir::RecordType>(unwrap(clsTy));
+  return wrap(cir::DataMemberType::get(unwrap(memberTy), recordType));
+}
+
+bool mlirTypeIsACIRDataMemberType(MlirType type) {
+  return llvm::isa<cir::DataMemberType>(unwrap(type));
+}
+
+//===----------------------------------------------------------------------===//
+// CIR VPtr Type
+//===----------------------------------------------------------------------===//
+
+MlirType mlirCIRVPtrTypeGet(MlirContext ctx) {
+  return wrap(cir::VPtrType::get(unwrap(ctx)));
+}
+
+bool mlirTypeIsACIRVPtrType(MlirType type) {
+  return llvm::isa<cir::VPtrType>(unwrap(type));
+}
+
+//===----------------------------------------------------------------------===//
+// CIR Exception Type
+//===----------------------------------------------------------------------===//
+
+MlirType mlirCIRExceptionTypeGet(MlirContext ctx) {
+  return wrap(cir::ExceptionInfoType::get(unwrap(ctx)));
+}
+
+bool mlirTypeIsACIRExceptionType(MlirType type) {
+  return llvm::isa<cir::ExceptionInfoType>(unwrap(type));
+}
+
+//===----------------------------------------------------------------------===//
 // CIR Attribute API
 //===----------------------------------------------------------------------===//
 
