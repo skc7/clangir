@@ -101,6 +101,39 @@ declare_mlir_dialect_python_bindings(
     dialects/builtin.py
   DIALECT_NAME builtin)
 
+# CIR dialect bindings (CIR is in clang/, needs extra includes for tablegen)
+if(CLANG_ENABLE_CIR)
+  get_filename_component(CLANG_SOURCE_DIR "${MLIR_SOURCE_DIR}/../clang" ABSOLUTE)
+
+  declare_mlir_dialect_python_bindings(
+    ADD_TO_PARENT MLIRPythonSources.Dialects
+    ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/mlir"
+    TD_FILE dialects/CIROps.td
+    SOURCES dialects/cir.py
+    DIALECT_NAME cir
+    DEPENDS MLIRCIROpsIncGen MLIRCIREnumsGen
+    EXTRA_INCLUDES "${CLANG_SOURCE_DIR}/include"
+  )
+
+  # CIR Python extension for dialect registration
+  get_filename_component(CLANG_LIB_CIR_BINDINGS_PYTHON_DIR
+    "${CLANG_SOURCE_DIR}/lib/CIR/Bindings/Python" ABSOLUTE)
+
+  declare_mlir_python_extension(MLIRPythonExtension.CIRDialect
+    MODULE_NAME _cirDialect
+    ADD_TO_PARENT MLIRPythonSources.Dialects.cir
+    ROOT_DIR "${CLANG_LIB_CIR_BINDINGS_PYTHON_DIR}"
+    PYTHON_BINDINGS_LIBRARY nanobind
+    SOURCES
+      CIRModule.cpp
+    PRIVATE_LINK_LIBS
+      LLVMSupport
+    EMBED_CAPI_LINK_LIBS
+      ClangCAPICIR
+      MLIRCAPIIR
+  )
+endif()
+
 declare_mlir_dialect_python_bindings(
   ADD_TO_PARENT MLIRPythonSources.Dialects
   ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/mlir"
@@ -890,6 +923,11 @@ add_mlir_python_common_capi_library(MLIRPythonCAPI
     ${_ADDL_TEST_SOURCES}
 )
 
+# Manually link ClangCAPICIR to MLIRPythonCAPI since it's in clang/ not mlir/
+if(CLANG_ENABLE_CIR)
+  target_link_libraries(MLIRPythonCAPI PRIVATE ClangCAPICIR)
+endif()
+
 ################################################################################
 # Custom targets.
 ################################################################################
@@ -1014,6 +1052,7 @@ add_mlir_python_modules(MLIRPythonModules
   COMMON_CAPI_LINK_LIBS
     MLIRPythonCAPI
 )
+
 if(_mlir_python_stubgen_enabled)
   add_dependencies(MLIRPythonModules "${_mlir_typestub_gen_target}")
   if(MLIR_INCLUDE_TESTS)
