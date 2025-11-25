@@ -22,6 +22,138 @@ extern "C" {
 
 MLIR_DECLARE_CAPI_DIALECT_REGISTRATION(CIR, cir);
 
+//===----------------------------------------------------------------------===//
+// CIR Type API
+//===----------------------------------------------------------------------===//
+
+/// Creates a CIR integer type.
+MLIR_CAPI_EXPORTED MlirType mlirCIRIntTypeGet(MlirContext ctx, unsigned width,
+                                              bool isSigned);
+
+/// Checks if the given type is a CIR integer type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRIntType(MlirType type);
+
+/// Creates a CIR bool type.
+MLIR_CAPI_EXPORTED MlirType mlirCIRBoolTypeGet(MlirContext ctx);
+
+/// Checks if the given type is a CIR bool type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRBoolType(MlirType type);
+
+/// Creates a CIR void type.
+MLIR_CAPI_EXPORTED MlirType mlirCIRVoidTypeGet(MlirContext ctx);
+
+/// Checks if the given type is a CIR void type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRVoidType(MlirType type);
+
+/// Creates a CIR pointer type.
+MLIR_CAPI_EXPORTED MlirType mlirCIRPointerTypeGet(MlirType pointee);
+
+/// Checks if the given type is a CIR pointer type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRPointerType(MlirType type);
+
+/// Creates a CIR array type.
+MLIR_CAPI_EXPORTED MlirType mlirCIRArrayTypeGet(MlirType elementType,
+                                                uint64_t size);
+
+/// Checks if the given type is a CIR array type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRArrayType(MlirType type);
+
+//===----------------------------------------------------------------------===//
+// CIR Float Types
+//===----------------------------------------------------------------------===//
+
+/// Creates a CIR single-precision float type (!cir.float).
+MLIR_CAPI_EXPORTED MlirType mlirCIRFloatTypeGet(MlirContext ctx);
+
+/// Creates a CIR double-precision float type (!cir.double).
+MLIR_CAPI_EXPORTED MlirType mlirCIRDoubleTypeGet(MlirContext ctx);
+
+/// Creates a CIR FP16 type (!cir.f16).
+MLIR_CAPI_EXPORTED MlirType mlirCIRFP16TypeGet(MlirContext ctx);
+
+/// Creates a CIR BFloat16 type (!cir.bf16).
+MLIR_CAPI_EXPORTED MlirType mlirCIRBF16TypeGet(MlirContext ctx);
+
+/// Creates a CIR FP80 type (!cir.f80).
+MLIR_CAPI_EXPORTED MlirType mlirCIRFP80TypeGet(MlirContext ctx);
+
+/// Creates a CIR FP128 type (!cir.f128).
+MLIR_CAPI_EXPORTED MlirType mlirCIRFP128TypeGet(MlirContext ctx);
+
+/// Checks if the given type is a CIR single-precision float type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRFloatType(MlirType type);
+
+/// Checks if the given type is a CIR double-precision float type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRDoubleType(MlirType type);
+
+/// Checks if the given type is a CIR FP16 type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRFP16Type(MlirType type);
+
+/// Checks if the given type is a CIR BFloat16 type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRBF16Type(MlirType type);
+
+/// Checks if the given type is a CIR FP80 type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRFP80Type(MlirType type);
+
+/// Checks if the given type is a CIR FP128 type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRFP128Type(MlirType type);
+
+/// Checks if the given type is a CIR long double type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRLongDoubleType(MlirType type);
+
+//===----------------------------------------------------------------------===//
+// CIR Complex Type
+//===----------------------------------------------------------------------===//
+
+/// Creates a CIR complex type.
+MLIR_CAPI_EXPORTED MlirType mlirCIRComplexTypeGet(MlirType elementType);
+
+/// Checks if the given type is a CIR complex type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRComplexType(MlirType type);
+
+//===----------------------------------------------------------------------===//
+// CIR Function Type
+//===----------------------------------------------------------------------===//
+
+/// Creates a CIR function type.
+MLIR_CAPI_EXPORTED MlirType mlirCIRFuncTypeGet(MlirContext ctx,
+                                               intptr_t numInputs,
+                                               MlirType const *inputs,
+                                               MlirType returnType,
+                                               bool isVarArg);
+
+/// Checks if the given type is a CIR function type.
+MLIR_CAPI_EXPORTED bool mlirTypeIsACIRFuncType(MlirType type);
+
+//===----------------------------------------------------------------------===//
+// CIR Attribute API
+//===----------------------------------------------------------------------===//
+
+/// Creates a CIR integer attribute.
+MLIR_CAPI_EXPORTED MlirAttribute mlirCIRIntAttrGet(MlirType type,
+                                                   int64_t value);
+
+/// Checks if the given attribute is a CIR integer attribute.
+MLIR_CAPI_EXPORTED bool mlirAttributeIsACIRIntAttr(MlirAttribute attr);
+
+/// Creates a CIR bool attribute.
+MLIR_CAPI_EXPORTED MlirAttribute mlirCIRBoolAttrGet(MlirType type, bool value);
+
+/// Checks if the given attribute is a CIR bool attribute.
+MLIR_CAPI_EXPORTED bool mlirAttributeIsACIRBoolAttr(MlirAttribute attr);
+
+/// Creates a CIR floating-point attribute.
+MLIR_CAPI_EXPORTED MlirAttribute mlirCIRFPAttrGet(MlirType type, double value);
+
+/// Checks if the given attribute is a CIR floating-point attribute.
+MLIR_CAPI_EXPORTED bool mlirAttributeIsACIRFPAttr(MlirAttribute attr);
+
+/// Creates a CIR zero attribute.
+MLIR_CAPI_EXPORTED MlirAttribute mlirCIRZeroAttrGet(MlirType type);
+
+/// Checks if the given attribute is a CIR zero attribute.
+MLIR_CAPI_EXPORTED bool mlirAttributeIsACIRZeroAttr(MlirAttribute attr);
+
 #ifdef __cplusplus
 }
 #endif

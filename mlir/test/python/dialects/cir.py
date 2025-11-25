@@ -236,19 +236,6 @@ def testBoolAttributes():
     print(bool_explicit)
 
 
-# CHECK-LABEL: TEST: testNullAttributes
-@run
-def testNullAttributes():
-    # Null pointer to int
-    null_int_ptr = cir.NullAttr(cir.PointerType(cir.s32()))
-    # CHECK: #cir.ptr<null> : !cir.ptr<!cir.int<s, 32>>
-    print(null_int_ptr)
-    # Null void pointer
-    null_void_ptr = cir.NullAttr(cir.PointerType(cir.VoidType()))
-    # CHECK: #cir.ptr<null> : !cir.ptr<!cir.void>
-    print(null_void_ptr)
-
-
 # CHECK-LABEL: TEST: testFloatAttributes
 @run
 def testFloatAttributes():

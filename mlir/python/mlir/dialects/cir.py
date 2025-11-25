@@ -4,30 +4,50 @@
 
 from ._cir_ops_gen import *
 from ._cir_ops_gen import _Dialect
+from .._mlir_libs import _cirDialect
+from ..ir import Context, Type, Attribute
 
-try:
-    from .._mlir_libs import _cirDialect
-    from ..ir import Context, Type, Attribute
+# Import all CIR native types
+from .._mlir_libs._cirDialect import (
+    IntType as _CIRIntType,
+    BoolType as _CIRBoolType,
+    VoidType as _CIRVoidType,
+    PointerType as _CIRPointerType,
+    ArrayType as _CIRArrayType,
+    FloatType as _CIRFloatType,
+    DoubleType as _CIRDoubleType,
+    FP16Type as _CIRFP16Type,
+    BF16Type as _CIRBF16Type,
+    FP80Type as _CIRFP80Type,
+    FP128Type as _CIRFP128Type,
+    ComplexType as _CIRComplexType,
+    FuncType as _CIRFuncType,
+)
 
-    # Register dialect on module import
-    def _register_on_import():
-        try:
-            ctx = Context._get_live_context()
-            if ctx is not None:
-                _cirDialect.register_dialect(ctx, load=True)
-        except:
-            pass
+# Import all CIR native attributes
+from .._mlir_libs._cirDialect import (
+    IntAttr as _CIRIntAttr,
+    BoolAttr as _CIRBoolAttr,
+    FPAttr as _CIRFPAttr,
+    ZeroAttr as _CIRZeroAttr,
+)
 
-    _register_on_import()
+# Register dialect on module import
+def _register_on_import():
+    try:
+        ctx = Context._get_live_context()
+        if ctx is not None:
+            _cirDialect.register_dialect(ctx, load=True)
+    except:
+        pass
 
-    def register_dialect(ctx=None):
-        """Explicitly register the CIR dialect with a context."""
-        if ctx is None:
-            ctx = Context.current
-        _cirDialect.register_dialect(ctx, load=True)
+_register_on_import()
 
-except ImportError:
-    pass
+def register_dialect(ctx=None):
+    """Explicitly register the CIR dialect with a context."""
+    if ctx is None:
+        ctx = Context.current
+    _cirDialect.register_dialect(ctx, load=True)
 
 
 # ===----------------------------------------------------------------------===//
@@ -49,8 +69,7 @@ def IntType(width: int, is_signed: bool = True) -> Type:
         >>> s32 = IntType(32, is_signed=True)   # !s32i or !cir.int<s, 32>
         >>> u64 = IntType(64, is_signed=False)  # !u64i or !cir.int<u, 64>
     """
-    sign = 's' if is_signed else 'u'
-    return Type.parse(f"!cir.int<{sign}, {width}>")
+    return _CIRIntType.get(width, is_signed)
 
 
 def BoolType() -> Type:
@@ -60,7 +79,7 @@ def BoolType() -> Type:
     Returns:
         A CIR bool type (!cir.bool)
     """
-    return Type.parse("!cir.bool")
+    return _CIRBoolType.get()
 
 
 def PointerType(pointee: Type) -> Type:
@@ -76,7 +95,7 @@ def PointerType(pointee: Type) -> Type:
     Example:
         >>> int_ptr = PointerType(IntType(32))  # !cir.ptr<!s32i>
     """
-    return Type.parse(f"!cir.ptr<{pointee}>")
+    return _CIRPointerType.get(pointee)
 
 
 def VoidType() -> Type:
@@ -86,7 +105,7 @@ def VoidType() -> Type:
     Returns:
         A CIR void type (!cir.void)
     """
-    return Type.parse("!cir.void")
+    return _CIRVoidType.get()
 
 
 def FloatType() -> Type:
@@ -99,7 +118,7 @@ def FloatType() -> Type:
     Example:
         >>> f = FloatType()  # !cir.float
     """
-    return Type.parse("!cir.float")
+    return _CIRFloatType.get()
 
 
 def DoubleType() -> Type:
@@ -112,7 +131,7 @@ def DoubleType() -> Type:
     Example:
         >>> d = DoubleType()  # !cir.double
     """
-    return Type.parse("!cir.double")
+    return _CIRDoubleType.get()
 
 
 def FP16Type() -> Type:
@@ -122,7 +141,7 @@ def FP16Type() -> Type:
     Returns:
         A CIR f16 type (!cir.f16)
     """
-    return Type.parse("!cir.f16")
+    return _CIRFP16Type.get()
 
 
 def BF16Type() -> Type:
@@ -132,7 +151,7 @@ def BF16Type() -> Type:
     Returns:
         A CIR bf16 type (!cir.bf16)
     """
-    return Type.parse("!cir.bf16")
+    return _CIRBF16Type.get()
 
 
 def FP80Type() -> Type:
@@ -142,7 +161,7 @@ def FP80Type() -> Type:
     Returns:
         A CIR f80 type (!cir.f80)
     """
-    return Type.parse("!cir.f80")
+    return _CIRFP80Type.get()
 
 
 def FP128Type() -> Type:
@@ -152,7 +171,7 @@ def FP128Type() -> Type:
     Returns:
         A CIR f128 type (!cir.f128)
     """
-    return Type.parse("!cir.f128")
+    return _CIRFP128Type.get()
 
 
 def ComplexType(element_type: Type) -> Type:
@@ -170,7 +189,7 @@ def ComplexType(element_type: Type) -> Type:
         >>> c = ComplexType(FloatType())  # !cir.complex<!cir.float>
         >>> c = ComplexType(s32())        # !cir.complex<!s32i>
     """
-    return Type.parse(f"!cir.complex<{element_type}>")
+    return _CIRComplexType.get(element_type)
 
 
 def ArrayType(element_type: Type, size: int) -> Type:
@@ -188,7 +207,7 @@ def ArrayType(element_type: Type, size: int) -> Type:
         >>> arr = ArrayType(s32(), 10)  # !cir.array<!s32i x 10>
         >>> arr = ArrayType(FloatType(), 5)  # !cir.array<!cir.float x 5>
     """
-    return Type.parse(f"!cir.array<{element_type} x {size}>")
+    return _CIRArrayType.get(element_type, size)
 
 
 def FuncType(inputs: list, return_type: Type = None, is_vararg: bool = False) -> Type:
@@ -210,18 +229,9 @@ def FuncType(inputs: list, return_type: Type = None, is_vararg: bool = False) ->
         >>> f4 = FuncType([s8(), s8()], s32())  # !cir.func<(!s8i, !s8i) -> !s32i>
         >>> f5 = FuncType([s32()], s32(), is_vararg=True)  # !cir.func<(!s32i, ...) -> !s32i>
     """
-    # Format input types
-    if inputs:
-        inputs_str = ", ".join(str(t) for t in inputs)
-        if is_vararg:
-            inputs_str += ", ..."
-    else:
-        inputs_str = "..." if is_vararg else ""
-
-    # Format return type
-    return_str = f" -> {return_type}" if return_type else ""
-
-    return Type.parse(f"!cir.func<({inputs_str}){return_str}>")
+    # Convert None return type to VoidType for native binding
+    ret_type = return_type if return_type is not None else VoidType()
+    return _CIRFuncType.get(inputs, ret_type, is_vararg)
 
 
 # Common float type aliases
@@ -265,7 +275,7 @@ def IntAttr(value: int, type: Type) -> Attribute:
     Example:
         >>> attr = IntAttr(42, s32())  # #cir.int<42> : !s32i
     """
-    return Attribute.parse(f"#cir.int<{value}> : {type}")
+    return _CIRIntAttr.get(value, type)
 
 
 def BoolAttr(value: bool, type: Type = None) -> Attribute:
@@ -284,24 +294,7 @@ def BoolAttr(value: bool, type: Type = None) -> Attribute:
     """
     if type is None:
         type = BoolType()
-    value_str = "true" if value else "false"
-    return Attribute.parse(f"#cir.bool<{value_str}> : {type}")
-
-
-def NullAttr(type: Type) -> Attribute:
-    """
-    Create a CIR null pointer attribute.
-
-    Args:
-        type: The CIR pointer type
-
-    Returns:
-        A CIR null pointer attribute (#cir.ptr<null> : type)
-
-    Example:
-        >>> attr = NullAttr(PointerType(s32()))  # #cir.ptr<null> : !cir.ptr<!s32i>
-    """
-    return Attribute.parse(f"#cir.ptr<null> : {type}")
+    return _CIRBoolAttr.get(value, type)
 
 
 def FloatAttr(value: float, type: Type) -> Attribute:
@@ -318,7 +311,7 @@ def FloatAttr(value: float, type: Type) -> Attribute:
     Example:
         >>> attr = FloatAttr(3.14, FloatType())  # #cir.fp<3.140000e+00> : !cir.float
     """
-    return Attribute.parse(f"#cir.fp<{value:e}> : {type}")
+    return _CIRFPAttr.get(value, type)
 
 
 def ZeroAttr(type: Type) -> Attribute:
@@ -335,4 +328,4 @@ def ZeroAttr(type: Type) -> Attribute:
         >>> attr = ZeroAttr(s32())  # #cir.zero : !s32i
         >>> attr = ZeroAttr(ArrayType(s32(), 10))  # #cir.zero : !cir.array<!s32i x 10>
     """
-    return Attribute.parse(f"#cir.zero : {type}")
+    return _CIRZeroAttr.get(type)

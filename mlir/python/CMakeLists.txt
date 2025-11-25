@@ -1053,6 +1053,16 @@ add_mlir_python_modules(MLIRPythonModules
     MLIRPythonCAPI
 )
 
+# Add clang include directory for CIR Python extension
+if(CLANG_ENABLE_CIR AND TARGET MLIRPythonModules.extension._cirDialect.dso)
+  get_filename_component(CLANG_SOURCE_DIR "${MLIR_SOURCE_DIR}/../clang" ABSOLUTE)
+  target_include_directories(MLIRPythonModules.extension._cirDialect.dso
+    PRIVATE
+    "${CLANG_SOURCE_DIR}/include"
+    "${CMAKE_BINARY_DIR}/tools/clang/include"
+  )
+endif()
+
 if(_mlir_python_stubgen_enabled)
   add_dependencies(MLIRPythonModules "${_mlir_typestub_gen_target}")
   if(MLIR_INCLUDE_TESTS)
