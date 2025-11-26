@@ -125,6 +125,19 @@ MLIR_CAPI_EXPORTED MlirType mlirCIRFuncTypeGet(MlirContext ctx,
 /// Checks if the given type is a CIR function type.
 MLIR_CAPI_EXPORTED bool mlirTypeIsACIRFuncType(MlirType type);
 
+/// Gets the number of input types in a CIR function type.
+MLIR_CAPI_EXPORTED intptr_t mlirCIRFuncTypeGetNumInputs(MlirType type);
+
+/// Gets the input type at the given index in a CIR function type.
+MLIR_CAPI_EXPORTED MlirType mlirCIRFuncTypeGetInput(MlirType type,
+                                                    intptr_t pos);
+
+/// Gets the return type of a CIR function type.
+MLIR_CAPI_EXPORTED MlirType mlirCIRFuncTypeGetReturnType(MlirType type);
+
+/// Checks if a CIR function type is variadic.
+MLIR_CAPI_EXPORTED bool mlirCIRFuncTypeIsVarArg(MlirType type);
+
 //===----------------------------------------------------------------------===//
 // CIR Vector Type
 //===----------------------------------------------------------------------===//
@@ -220,6 +233,99 @@ MLIR_CAPI_EXPORTED MlirAttribute mlirCIRZeroAttrGet(MlirType type);
 
 /// Checks if the given attribute is a CIR zero attribute.
 MLIR_CAPI_EXPORTED bool mlirAttributeIsACIRZeroAttr(MlirAttribute attr);
+
+//===----------------------------------------------------------------------===//
+// CIR VisibilityAttr
+//===----------------------------------------------------------------------===//
+
+/// CIR visibility kind enumeration.
+typedef enum {
+  MlirCIRVisibilityKindDefault = 0,
+  MlirCIRVisibilityKindHidden = 1,
+  MlirCIRVisibilityKindProtected = 2
+} MlirCIRVisibilityKind;
+
+/// Creates a CIR visibility attribute.
+MLIR_CAPI_EXPORTED MlirAttribute
+mlirCIRVisibilityAttrGet(MlirContext ctx, MlirCIRVisibilityKind kind);
+
+/// Checks if the given attribute is a CIR visibility attribute.
+MLIR_CAPI_EXPORTED bool mlirAttributeIsACIRVisibilityAttr(MlirAttribute attr);
+
+/// Gets the visibility kind from a CIR visibility attribute.
+MLIR_CAPI_EXPORTED MlirCIRVisibilityKind
+mlirCIRVisibilityAttrGetKind(MlirAttribute attr);
+
+//===----------------------------------------------------------------------===//
+// CIR ExtraFuncAttributesAttr
+//===----------------------------------------------------------------------===//
+
+/// Creates a CIR extra function attributes attribute.
+MLIR_CAPI_EXPORTED MlirAttribute
+mlirCIRExtraFuncAttributesAttrGet(MlirAttribute dictAttr);
+
+/// Checks if the given attribute is a CIR extra function attributes attribute.
+MLIR_CAPI_EXPORTED bool
+mlirAttributeIsACIRExtraFuncAttributesAttr(MlirAttribute attr);
+
+/// Gets the dictionary attribute from a CIR extra function attributes
+/// attribute.
+MLIR_CAPI_EXPORTED MlirAttribute
+mlirCIRExtraFuncAttributesAttrGetElements(MlirAttribute attr);
+
+//===----------------------------------------------------------------------===//
+// CIR GlobalLinkageKind
+//===----------------------------------------------------------------------===//
+
+/// CIR global linkage kind enumeration.
+typedef enum {
+  MlirCIRGlobalLinkageKindExternalLinkage = 0,
+  MlirCIRGlobalLinkageKindAvailableExternallyLinkage = 1,
+  MlirCIRGlobalLinkageKindLinkOnceAnyLinkage = 2,
+  MlirCIRGlobalLinkageKindLinkOnceODRLinkage = 3,
+  MlirCIRGlobalLinkageKindWeakAnyLinkage = 4,
+  MlirCIRGlobalLinkageKindWeakODRLinkage = 5,
+  MlirCIRGlobalLinkageKindInternalLinkage = 7,
+  MlirCIRGlobalLinkageKindPrivateLinkage = 8,
+  MlirCIRGlobalLinkageKindExternalWeakLinkage = 9,
+  MlirCIRGlobalLinkageKindCommonLinkage = 10
+} MlirCIRGlobalLinkageKind;
+
+/// Creates a CIR global linkage kind attribute.
+MLIR_CAPI_EXPORTED MlirAttribute
+mlirCIRGlobalLinkageKindAttrGet(MlirContext ctx, MlirCIRGlobalLinkageKind kind);
+
+/// Checks if the given attribute is a CIR global linkage kind attribute.
+MLIR_CAPI_EXPORTED bool
+mlirAttributeIsACIRGlobalLinkageKindAttr(MlirAttribute attr);
+
+/// Gets the global linkage kind from a CIR global linkage kind attribute.
+MLIR_CAPI_EXPORTED MlirCIRGlobalLinkageKind
+mlirCIRGlobalLinkageKindAttrGetKind(MlirAttribute attr);
+
+//===----------------------------------------------------------------------===//
+// CIR CallingConv
+//===----------------------------------------------------------------------===//
+
+/// CIR calling convention enumeration.
+typedef enum {
+  MlirCIRCallingConvC = 1,
+  MlirCIRCallingConvSpirKernel = 2,
+  MlirCIRCallingConvSpirFunction = 3,
+  MlirCIRCallingConvOpenCLKernel = 4,
+  MlirCIRCallingConvPTXKernel = 5
+} MlirCIRCallingConv;
+
+/// Creates a CIR calling convention attribute.
+MLIR_CAPI_EXPORTED MlirAttribute
+mlirCIRCallingConvAttrGet(MlirContext ctx, MlirCIRCallingConv conv);
+
+/// Checks if the given attribute is a CIR calling convention attribute.
+MLIR_CAPI_EXPORTED bool mlirAttributeIsACIRCallingConvAttr(MlirAttribute attr);
+
+/// Gets the calling convention from a CIR calling convention attribute.
+MLIR_CAPI_EXPORTED MlirCIRCallingConv
+mlirCIRCallingConvAttrGetConv(MlirAttribute attr);
 
 #ifdef __cplusplus
 }

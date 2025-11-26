@@ -45,6 +45,9 @@ NB_MODULE(_cirDialect, m) {
       },
       "Create a CIR integer type", nb::arg("cls"), nb::arg("width"),
       nb::arg("is_signed") = true, nb::arg("context") = nb::none());
+  intType.def_staticmethod(
+      "isinstance", [](MlirType type) { return mlirTypeIsACIRIntType(type); },
+      "Check if a type is a CIR integer type", nb::arg("type"));
 
   auto boolType = mlir_type_subclass(m, "BoolType", mlirTypeIsACIRBoolType);
   boolType.def_classmethod(
@@ -54,6 +57,9 @@ NB_MODULE(_cirDialect, m) {
       },
       "Create a CIR bool type", nb::arg("cls"),
       nb::arg("context") = nb::none());
+  boolType.def_staticmethod(
+      "isinstance", [](MlirType type) { return mlirTypeIsACIRBoolType(type); },
+      "Check if a type is a CIR bool type", nb::arg("type"));
 
   auto voidType = mlir_type_subclass(m, "VoidType", mlirTypeIsACIRVoidType);
   voidType.def_classmethod(
@@ -63,6 +69,9 @@ NB_MODULE(_cirDialect, m) {
       },
       "Create a CIR void type", nb::arg("cls"),
       nb::arg("context") = nb::none());
+  voidType.def_staticmethod(
+      "isinstance", [](MlirType type) { return mlirTypeIsACIRVoidType(type); },
+      "Check if a type is a CIR void type", nb::arg("type"));
 
   auto pointerType =
       mlir_type_subclass(m, "PointerType", mlirTypeIsACIRPointerType);
@@ -72,6 +81,10 @@ NB_MODULE(_cirDialect, m) {
         return cls(mlirCIRPointerTypeGet(pointee));
       },
       "Create a CIR pointer type", nb::arg("cls"), nb::arg("pointee"));
+  pointerType.def_staticmethod(
+      "isinstance",
+      [](MlirType type) { return mlirTypeIsACIRPointerType(type); },
+      "Check if a type is a CIR pointer type", nb::arg("type"));
 
   auto arrayType = mlir_type_subclass(m, "ArrayType", mlirTypeIsACIRArrayType);
   arrayType.def_classmethod(
@@ -81,6 +94,9 @@ NB_MODULE(_cirDialect, m) {
       },
       "Create a CIR array type", nb::arg("cls"), nb::arg("element_type"),
       nb::arg("size"));
+  arrayType.def_staticmethod(
+      "isinstance", [](MlirType type) { return mlirTypeIsACIRArrayType(type); },
+      "Check if a type is a CIR array type", nb::arg("type"));
 
   //===--------------------------------------------------------------------===//
   // CIR Float Types
@@ -94,6 +110,9 @@ NB_MODULE(_cirDialect, m) {
       },
       "Create a CIR single-precision float type", nb::arg("cls"),
       nb::arg("context") = nb::none());
+  floatType.def_staticmethod(
+      "isinstance", [](MlirType type) { return mlirTypeIsACIRFloatType(type); },
+      "Check if a type is a CIR float type", nb::arg("type"));
 
   auto doubleType =
       mlir_type_subclass(m, "DoubleType", mlirTypeIsACIRDoubleType);
@@ -104,6 +123,10 @@ NB_MODULE(_cirDialect, m) {
       },
       "Create a CIR double-precision float type", nb::arg("cls"),
       nb::arg("context") = nb::none());
+  doubleType.def_staticmethod(
+      "isinstance",
+      [](MlirType type) { return mlirTypeIsACIRDoubleType(type); },
+      "Check if a type is a CIR double type", nb::arg("type"));
 
   auto fp16Type = mlir_type_subclass(m, "FP16Type", mlirTypeIsACIRFP16Type);
   fp16Type.def_classmethod(
@@ -113,6 +136,9 @@ NB_MODULE(_cirDialect, m) {
       },
       "Create a CIR FP16 type", nb::arg("cls"),
       nb::arg("context") = nb::none());
+  fp16Type.def_staticmethod(
+      "isinstance", [](MlirType type) { return mlirTypeIsACIRFP16Type(type); },
+      "Check if a type is a CIR FP16 type", nb::arg("type"));
 
   auto bf16Type = mlir_type_subclass(m, "BF16Type", mlirTypeIsACIRBF16Type);
   bf16Type.def_classmethod(
@@ -122,6 +148,9 @@ NB_MODULE(_cirDialect, m) {
       },
       "Create a CIR BFloat16 type", nb::arg("cls"),
       nb::arg("context") = nb::none());
+  bf16Type.def_staticmethod(
+      "isinstance", [](MlirType type) { return mlirTypeIsACIRBF16Type(type); },
+      "Check if a type is a CIR BFloat16 type", nb::arg("type"));
 
   auto fp80Type = mlir_type_subclass(m, "FP80Type", mlirTypeIsACIRFP80Type);
   fp80Type.def_classmethod(
@@ -131,6 +160,9 @@ NB_MODULE(_cirDialect, m) {
       },
       "Create a CIR FP80 type", nb::arg("cls"),
       nb::arg("context") = nb::none());
+  fp80Type.def_staticmethod(
+      "isinstance", [](MlirType type) { return mlirTypeIsACIRFP80Type(type); },
+      "Check if a type is a CIR FP80 type", nb::arg("type"));
 
   auto fp128Type = mlir_type_subclass(m, "FP128Type", mlirTypeIsACIRFP128Type);
   fp128Type.def_classmethod(
@@ -140,6 +172,9 @@ NB_MODULE(_cirDialect, m) {
       },
       "Create a CIR FP128 type", nb::arg("cls"),
       nb::arg("context") = nb::none());
+  fp128Type.def_staticmethod(
+      "isinstance", [](MlirType type) { return mlirTypeIsACIRFP128Type(type); },
+      "Check if a type is a CIR FP128 type", nb::arg("type"));
 
   //===--------------------------------------------------------------------===//
   // CIR Complex Type
@@ -153,6 +188,10 @@ NB_MODULE(_cirDialect, m) {
         return cls(mlirCIRComplexTypeGet(elementType));
       },
       "Create a CIR complex type", nb::arg("cls"), nb::arg("element_type"));
+  complexType.def_staticmethod(
+      "isinstance",
+      [](MlirType type) { return mlirTypeIsACIRComplexType(type); },
+      "Check if a type is a CIR complex type", nb::arg("type"));
 
   //===--------------------------------------------------------------------===//
   // CIR Function Type
@@ -174,6 +213,28 @@ NB_MODULE(_cirDialect, m) {
       "Create a CIR function type", nb::arg("cls"), nb::arg("inputs"),
       nb::arg("return_type"), nb::arg("is_vararg") = false,
       nb::arg("context") = nb::none());
+  funcType.def_property_readonly(
+      "num_inputs",
+      [](MlirType self) { return mlirCIRFuncTypeGetNumInputs(self); },
+      "Get the number of input types");
+  funcType.def_property_readonly(
+      "inputs",
+      [](MlirType self) {
+        intptr_t numInputs = mlirCIRFuncTypeGetNumInputs(self);
+        nb::list inputs;
+        for (intptr_t i = 0; i < numInputs; ++i) {
+          inputs.append(mlirCIRFuncTypeGetInput(self, i));
+        }
+        return inputs;
+      },
+      "Get the list of input types");
+  funcType.def_property_readonly(
+      "return_type",
+      [](MlirType self) { return mlirCIRFuncTypeGetReturnType(self); },
+      "Get the return type");
+  funcType.def_property_readonly(
+      "is_vararg", [](MlirType self) { return mlirCIRFuncTypeIsVarArg(self); },
+      "Check if the function type is variadic");
 
   //===--------------------------------------------------------------------===//
   // CIR Vector Type
@@ -307,4 +368,109 @@ NB_MODULE(_cirDialect, m) {
         return cls(mlirCIRZeroAttrGet(type));
       },
       "Create a CIR zero attribute", nb::arg("cls"), nb::arg("type"));
+
+  //===--------------------------------------------------------------------===//
+  // CIR VisibilityAttr
+  //===--------------------------------------------------------------------===//
+
+  nb::enum_<MlirCIRVisibilityKind>(m, "VisibilityKind")
+      .value("Default", MlirCIRVisibilityKindDefault)
+      .value("Hidden", MlirCIRVisibilityKindHidden)
+      .value("Protected", MlirCIRVisibilityKindProtected)
+      .export_values();
+
+  auto visibilityAttr = mlir_attribute_subclass(
+      m, "VisibilityAttr", mlirAttributeIsACIRVisibilityAttr);
+  visibilityAttr.def_classmethod(
+      "get",
+      [](const nb::object &cls, MlirCIRVisibilityKind kind, MlirContext ctx) {
+        return cls(mlirCIRVisibilityAttrGet(ctx, kind));
+      },
+      "Create a CIR visibility attribute", nb::arg("cls"), nb::arg("kind"),
+      nb::arg("context") = nb::none());
+  visibilityAttr.def_property_readonly(
+      "kind",
+      [](MlirAttribute self) { return mlirCIRVisibilityAttrGetKind(self); },
+      "Get the visibility kind");
+
+  //===--------------------------------------------------------------------===//
+  // CIR ExtraFuncAttributesAttr
+  //===--------------------------------------------------------------------===//
+
+  auto extraFuncAttributesAttr = mlir_attribute_subclass(
+      m, "ExtraFuncAttributesAttr", mlirAttributeIsACIRExtraFuncAttributesAttr);
+  extraFuncAttributesAttr.def_classmethod(
+      "get",
+      [](const nb::object &cls, MlirAttribute dictAttr) {
+        return cls(mlirCIRExtraFuncAttributesAttrGet(dictAttr));
+      },
+      "Create a CIR extra function attributes attribute", nb::arg("cls"),
+      nb::arg("dict_attr"));
+  extraFuncAttributesAttr.def_property_readonly(
+      "elements",
+      [](MlirAttribute self) {
+        return mlirCIRExtraFuncAttributesAttrGetElements(self);
+      },
+      "Get the dictionary of extra attributes");
+
+  //===--------------------------------------------------------------------===//
+  // CIR GlobalLinkageKind
+  //===--------------------------------------------------------------------===//
+
+  nb::enum_<MlirCIRGlobalLinkageKind>(m, "GlobalLinkageKind")
+      .value("ExternalLinkage", MlirCIRGlobalLinkageKindExternalLinkage)
+      .value("AvailableExternallyLinkage",
+             MlirCIRGlobalLinkageKindAvailableExternallyLinkage)
+      .value("LinkOnceAnyLinkage", MlirCIRGlobalLinkageKindLinkOnceAnyLinkage)
+      .value("LinkOnceODRLinkage", MlirCIRGlobalLinkageKindLinkOnceODRLinkage)
+      .value("WeakAnyLinkage", MlirCIRGlobalLinkageKindWeakAnyLinkage)
+      .value("WeakODRLinkage", MlirCIRGlobalLinkageKindWeakODRLinkage)
+      .value("InternalLinkage", MlirCIRGlobalLinkageKindInternalLinkage)
+      .value("PrivateLinkage", MlirCIRGlobalLinkageKindPrivateLinkage)
+      .value("ExternalWeakLinkage", MlirCIRGlobalLinkageKindExternalWeakLinkage)
+      .value("CommonLinkage", MlirCIRGlobalLinkageKindCommonLinkage)
+      .export_values();
+
+  auto globalLinkageKindAttr = mlir_attribute_subclass(
+      m, "GlobalLinkageKindAttr", mlirAttributeIsACIRGlobalLinkageKindAttr);
+  globalLinkageKindAttr.def_classmethod(
+      "get",
+      [](const nb::object &cls, MlirCIRGlobalLinkageKind kind,
+         MlirContext ctx) {
+        return cls(mlirCIRGlobalLinkageKindAttrGet(ctx, kind));
+      },
+      "Create a CIR global linkage kind attribute", nb::arg("cls"),
+      nb::arg("kind"), nb::arg("context") = nb::none());
+  globalLinkageKindAttr.def_property_readonly(
+      "kind",
+      [](MlirAttribute self) {
+        return mlirCIRGlobalLinkageKindAttrGetKind(self);
+      },
+      "Get the global linkage kind");
+
+  //===--------------------------------------------------------------------===//
+  // CIR CallingConv
+  //===--------------------------------------------------------------------===//
+
+  nb::enum_<MlirCIRCallingConv>(m, "CallingConv")
+      .value("C", MlirCIRCallingConvC)
+      .value("SpirKernel", MlirCIRCallingConvSpirKernel)
+      .value("SpirFunction", MlirCIRCallingConvSpirFunction)
+      .value("OpenCLKernel", MlirCIRCallingConvOpenCLKernel)
+      .value("PTXKernel", MlirCIRCallingConvPTXKernel)
+      .export_values();
+
+  auto callingConvAttr = mlir_attribute_subclass(
+      m, "CallingConvAttr", mlirAttributeIsACIRCallingConvAttr);
+  callingConvAttr.def_classmethod(
+      "get",
+      [](const nb::object &cls, MlirCIRCallingConv conv, MlirContext ctx) {
+        return cls(mlirCIRCallingConvAttrGet(ctx, conv));
+      },
+      "Create a CIR calling convention attribute", nb::arg("cls"),
+      nb::arg("conv"), nb::arg("context") = nb::none());
+  callingConvAttr.def_property_readonly(
+      "conv",
+      [](MlirAttribute self) { return mlirCIRCallingConvAttrGetConv(self); },
+      "Get the calling convention");
 }

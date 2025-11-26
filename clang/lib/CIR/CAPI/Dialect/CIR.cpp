@@ -154,6 +154,26 @@ bool mlirTypeIsACIRFuncType(MlirType type) {
   return llvm::isa<cir::FuncType>(unwrap(type));
 }
 
+intptr_t mlirCIRFuncTypeGetNumInputs(MlirType type) {
+  auto funcType = mlir::cast<cir::FuncType>(unwrap(type));
+  return static_cast<intptr_t>(funcType.getNumInputs());
+}
+
+MlirType mlirCIRFuncTypeGetInput(MlirType type, intptr_t pos) {
+  auto funcType = mlir::cast<cir::FuncType>(unwrap(type));
+  return wrap(funcType.getInput(static_cast<unsigned>(pos)));
+}
+
+MlirType mlirCIRFuncTypeGetReturnType(MlirType type) {
+  auto funcType = mlir::cast<cir::FuncType>(unwrap(type));
+  return wrap(funcType.getReturnType());
+}
+
+bool mlirCIRFuncTypeIsVarArg(MlirType type) {
+  auto funcType = mlir::cast<cir::FuncType>(unwrap(type));
+  return funcType.isVarArg();
+}
+
 //===----------------------------------------------------------------------===//
 // CIR Vector Type
 //===----------------------------------------------------------------------===//
@@ -295,4 +315,182 @@ MlirAttribute mlirCIRZeroAttrGet(MlirType type) {
 
 bool mlirAttributeIsACIRZeroAttr(MlirAttribute attr) {
   return llvm::isa<cir::ZeroAttr>(unwrap(attr));
+}
+
+//===----------------------------------------------------------------------===//
+// CIR VisibilityAttr
+//===----------------------------------------------------------------------===//
+
+MlirAttribute mlirCIRVisibilityAttrGet(MlirContext ctx,
+                                       MlirCIRVisibilityKind kind) {
+  cir::VisibilityKind cirKind;
+  switch (kind) {
+  case MlirCIRVisibilityKindDefault:
+    cirKind = cir::VisibilityKind::Default;
+    break;
+  case MlirCIRVisibilityKindHidden:
+    cirKind = cir::VisibilityKind::Hidden;
+    break;
+  case MlirCIRVisibilityKindProtected:
+    cirKind = cir::VisibilityKind::Protected;
+    break;
+  }
+  return wrap(cir::VisibilityAttr::get(unwrap(ctx), cirKind));
+}
+
+bool mlirAttributeIsACIRVisibilityAttr(MlirAttribute attr) {
+  return llvm::isa<cir::VisibilityAttr>(unwrap(attr));
+}
+
+MlirCIRVisibilityKind mlirCIRVisibilityAttrGetKind(MlirAttribute attr) {
+  auto visAttr = mlir::cast<cir::VisibilityAttr>(unwrap(attr));
+  switch (visAttr.getValue()) {
+  case cir::VisibilityKind::Default:
+    return MlirCIRVisibilityKindDefault;
+  case cir::VisibilityKind::Hidden:
+    return MlirCIRVisibilityKindHidden;
+  case cir::VisibilityKind::Protected:
+    return MlirCIRVisibilityKindProtected;
+  }
+  llvm_unreachable("Unknown VisibilityKind");
+}
+
+//===----------------------------------------------------------------------===//
+// CIR ExtraFuncAttributesAttr
+//===----------------------------------------------------------------------===//
+
+MlirAttribute mlirCIRExtraFuncAttributesAttrGet(MlirAttribute dictAttr) {
+  auto dict = mlir::cast<mlir::DictionaryAttr>(unwrap(dictAttr));
+  return wrap(cir::ExtraFuncAttributesAttr::get(dict));
+}
+
+bool mlirAttributeIsACIRExtraFuncAttributesAttr(MlirAttribute attr) {
+  return llvm::isa<cir::ExtraFuncAttributesAttr>(unwrap(attr));
+}
+
+MlirAttribute mlirCIRExtraFuncAttributesAttrGetElements(MlirAttribute attr) {
+  auto extraAttr = mlir::cast<cir::ExtraFuncAttributesAttr>(unwrap(attr));
+  return wrap(extraAttr.getElements());
+}
+
+//===----------------------------------------------------------------------===//
+// CIR GlobalLinkageKind
+//===----------------------------------------------------------------------===//
+
+MlirAttribute mlirCIRGlobalLinkageKindAttrGet(MlirContext ctx,
+                                              MlirCIRGlobalLinkageKind kind) {
+  cir::GlobalLinkageKind cirKind;
+  switch (kind) {
+  case MlirCIRGlobalLinkageKindExternalLinkage:
+    cirKind = cir::GlobalLinkageKind::ExternalLinkage;
+    break;
+  case MlirCIRGlobalLinkageKindAvailableExternallyLinkage:
+    cirKind = cir::GlobalLinkageKind::AvailableExternallyLinkage;
+    break;
+  case MlirCIRGlobalLinkageKindLinkOnceAnyLinkage:
+    cirKind = cir::GlobalLinkageKind::LinkOnceAnyLinkage;
+    break;
+  case MlirCIRGlobalLinkageKindLinkOnceODRLinkage:
+    cirKind = cir::GlobalLinkageKind::LinkOnceODRLinkage;
+    break;
+  case MlirCIRGlobalLinkageKindWeakAnyLinkage:
+    cirKind = cir::GlobalLinkageKind::WeakAnyLinkage;
+    break;
+  case MlirCIRGlobalLinkageKindWeakODRLinkage:
+    cirKind = cir::GlobalLinkageKind::WeakODRLinkage;
+    break;
+  case MlirCIRGlobalLinkageKindInternalLinkage:
+    cirKind = cir::GlobalLinkageKind::InternalLinkage;
+    break;
+  case MlirCIRGlobalLinkageKindPrivateLinkage:
+    cirKind = cir::GlobalLinkageKind::PrivateLinkage;
+    break;
+  case MlirCIRGlobalLinkageKindExternalWeakLinkage:
+    cirKind = cir::GlobalLinkageKind::ExternalWeakLinkage;
+    break;
+  case MlirCIRGlobalLinkageKindCommonLinkage:
+    cirKind = cir::GlobalLinkageKind::CommonLinkage;
+    break;
+  }
+  return wrap(cir::GlobalLinkageKindAttr::get(unwrap(ctx), cirKind));
+}
+
+bool mlirAttributeIsACIRGlobalLinkageKindAttr(MlirAttribute attr) {
+  return llvm::isa<cir::GlobalLinkageKindAttr>(unwrap(attr));
+}
+
+MlirCIRGlobalLinkageKind
+mlirCIRGlobalLinkageKindAttrGetKind(MlirAttribute attr) {
+  auto linkageAttr = mlir::cast<cir::GlobalLinkageKindAttr>(unwrap(attr));
+  switch (linkageAttr.getValue()) {
+  case cir::GlobalLinkageKind::ExternalLinkage:
+    return MlirCIRGlobalLinkageKindExternalLinkage;
+  case cir::GlobalLinkageKind::AvailableExternallyLinkage:
+    return MlirCIRGlobalLinkageKindAvailableExternallyLinkage;
+  case cir::GlobalLinkageKind::LinkOnceAnyLinkage:
+    return MlirCIRGlobalLinkageKindLinkOnceAnyLinkage;
+  case cir::GlobalLinkageKind::LinkOnceODRLinkage:
+    return MlirCIRGlobalLinkageKindLinkOnceODRLinkage;
+  case cir::GlobalLinkageKind::WeakAnyLinkage:
+    return MlirCIRGlobalLinkageKindWeakAnyLinkage;
+  case cir::GlobalLinkageKind::WeakODRLinkage:
+    return MlirCIRGlobalLinkageKindWeakODRLinkage;
+  case cir::GlobalLinkageKind::InternalLinkage:
+    return MlirCIRGlobalLinkageKindInternalLinkage;
+  case cir::GlobalLinkageKind::PrivateLinkage:
+    return MlirCIRGlobalLinkageKindPrivateLinkage;
+  case cir::GlobalLinkageKind::ExternalWeakLinkage:
+    return MlirCIRGlobalLinkageKindExternalWeakLinkage;
+  case cir::GlobalLinkageKind::CommonLinkage:
+    return MlirCIRGlobalLinkageKindCommonLinkage;
+  }
+  llvm_unreachable("Unknown GlobalLinkageKind");
+}
+
+//===----------------------------------------------------------------------===//
+// CIR CallingConv
+//===----------------------------------------------------------------------===//
+
+MlirAttribute mlirCIRCallingConvAttrGet(MlirContext ctx,
+                                        MlirCIRCallingConv conv) {
+  cir::CallingConv cirConv;
+  switch (conv) {
+  case MlirCIRCallingConvC:
+    cirConv = cir::CallingConv::C;
+    break;
+  case MlirCIRCallingConvSpirKernel:
+    cirConv = cir::CallingConv::SpirKernel;
+    break;
+  case MlirCIRCallingConvSpirFunction:
+    cirConv = cir::CallingConv::SpirFunction;
+    break;
+  case MlirCIRCallingConvOpenCLKernel:
+    cirConv = cir::CallingConv::OpenCLKernel;
+    break;
+  case MlirCIRCallingConvPTXKernel:
+    cirConv = cir::CallingConv::PTXKernel;
+    break;
+  }
+  return wrap(cir::CallingConvAttr::get(unwrap(ctx), cirConv));
+}
+
+bool mlirAttributeIsACIRCallingConvAttr(MlirAttribute attr) {
+  return llvm::isa<cir::CallingConvAttr>(unwrap(attr));
+}
+
+MlirCIRCallingConv mlirCIRCallingConvAttrGetConv(MlirAttribute attr) {
+  auto convAttr = mlir::cast<cir::CallingConvAttr>(unwrap(attr));
+  switch (convAttr.getValue()) {
+  case cir::CallingConv::C:
+    return MlirCIRCallingConvC;
+  case cir::CallingConv::SpirKernel:
+    return MlirCIRCallingConvSpirKernel;
+  case cir::CallingConv::SpirFunction:
+    return MlirCIRCallingConvSpirFunction;
+  case cir::CallingConv::OpenCLKernel:
+    return MlirCIRCallingConvOpenCLKernel;
+  case cir::CallingConv::PTXKernel:
+    return MlirCIRCallingConvPTXKernel;
+  }
+  llvm_unreachable("Unknown CallingConv");
 }

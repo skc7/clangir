@@ -7,6 +7,14 @@ from ._cir_ops_gen import _Dialect
 from .._mlir_libs import _cirDialect
 from ..ir import Context, Type, Attribute
 
+# Try to import VisibilityAttr if available in generated code
+try:
+    from ._cir_ops_gen import VisibilityAttr as _CIRVisibilityAttr
+    _HAS_VISIBILITY_ATTR = True
+except ImportError:
+    _HAS_VISIBILITY_ATTR = False
+    _CIRVisibilityAttr = None
+
 # Import all CIR native types
 from .._mlir_libs._cirDialect import (
     IntType as _CIRIntType,
@@ -36,6 +44,13 @@ from .._mlir_libs._cirDialect import (
     BoolAttr as _CIRBoolAttr,
     FPAttr as _CIRFPAttr,
     ZeroAttr as _CIRZeroAttr,
+    VisibilityAttr as _CIRVisibilityAttr,
+    VisibilityKind as _CIRVisibilityKind,
+    ExtraFuncAttributesAttr as _CIRExtraFuncAttributesAttr,
+    GlobalLinkageKindAttr as _CIRGlobalLinkageKindAttr,
+    GlobalLinkageKind as _CIRGlobalLinkageKind,
+    CallingConvAttr as _CIRCallingConvAttr,
+    CallingConv as _CIRCallingConv,
 )
 
 # Register dialect on module import
@@ -54,6 +69,57 @@ def register_dialect(ctx=None):
     if ctx is None:
         ctx = Context.current
     _cirDialect.register_dialect(ctx, load=True)
+
+
+# ===----------------------------------------------------------------------===//
+# CIR Type Checking Helpers
+# ===----------------------------------------------------------------------===//
+
+def is_int_type(ty: Type) -> bool:
+    """Check if a type is a CIR integer type."""
+    return _CIRIntType.isinstance(ty)
+
+
+def is_bool_type(ty: Type) -> bool:
+    """Check if a type is a CIR bool type."""
+    return _CIRBoolType.isinstance(ty)
+
+
+def is_float_type(ty: Type) -> bool:
+    """Check if a type is a CIR float type (any precision)."""
+    return (_CIRFloatType.isinstance(ty) or
+            _CIRDoubleType.isinstance(ty) or
+            _CIRFP16Type.isinstance(ty) or
+            _CIRBF16Type.isinstance(ty) or
+            _CIRFP80Type.isinstance(ty) or
+            _CIRFP128Type.isinstance(ty))
+
+
+def is_scalar_type(ty: Type) -> bool:
+    """
+    Check if a type is a CIR scalar type (int, float, or bool).
+    
+    Scalar types support arithmetic and comparison operations.
+    Useful for determining if operator overloading can be applied.
+    
+    Args:
+        ty: MLIR Type to check
+    
+    Returns:
+        True if the type is a scalar, False otherwise
+    
+    Example:
+        >>> t = cir.s32()
+        >>> cir.is_scalar_type(t)  # True
+        >>> ptr = cir.PointerType(cir.s32())
+        >>> cir.is_scalar_type(ptr)  # False
+    """
+    return is_int_type(ty) or is_bool_type(ty) or is_float_type(ty)
+
+# Export enums for direct use
+VisibilityKind = _CIRVisibilityKind
+GlobalLinkageKind = _CIRGlobalLinkageKind
+CallingConv = _CIRCallingConv
 
 
 # ===----------------------------------------------------------------------===//
@@ -436,3 +502,174 @@ def ZeroAttr(type: Type) -> Attribute:
         >>> attr = ZeroAttr(ArrayType(s32(), 10))  # #cir.zero : !cir.array<!s32i x 10>
     """
     return _CIRZeroAttr.get(type)
+
+
+# ===----------------------------------------------------------------------===//
+# CIR FuncOp Helper Attributes
+# ===----------------------------------------------------------------------===//
+
+def VisibilityAttr(visibility = "default") -> Attribute:
+    """
+    Create a CIR visibility attribute.
+    
+    Args:
+        visibility: Visibility level - can be:
+                   - String: "default", "hidden", or "protected"
+                   - VisibilityKind enum value
+                   - Integer: 0 (default), 1 (hidden), 2 (protected)
+    
+    Returns:
+        A CIR visibility attribute (#cir.visibility<...>)
+    
+    Example:
+        >>> vis = VisibilityAttr("default")
+        >>> vis = VisibilityAttr("hidden")
+        >>> vis = VisibilityAttr(_CIRVisibilityKind.Hidden)
+        >>> vis = VisibilityAttr(1)  # 1 = hidden
+    
+    Note:
+        This attribute is used for specifying symbol visibility in CIR,
+        such as for global functions and variables.
+    """
+    kind = None
+    
+    # Handle different input types
+    if isinstance(visibility, str):
+        visibility_map = {
+            "default": _CIRVisibilityKind.Default,
+            "hidden": _CIRVisibilityKind.Hidden,
+            "protected": _CIRVisibilityKind.Protected
+        }
+        if visibility.lower() not in visibility_map:
+            raise ValueError(
+                f"Invalid visibility '{visibility}'. "
+                f"Must be one of: 'default', 'hidden', 'protected'"
+            )
+        kind = visibility_map[visibility.lower()]
+    elif isinstance(visibility, int):
+        # Map integer to enum
+        int_map = {
+            0: _CIRVisibilityKind.Default,
+            1: _CIRVisibilityKind.Hidden,
+            2: _CIRVisibilityKind.Protected
+        }
+        if visibility not in int_map:
+            raise ValueError(
+                f"Invalid visibility {visibility}. "
+                f"Must be 0 (default), 1 (hidden), or 2 (protected)"
+            )
+        kind = int_map[visibility]
+    elif isinstance(visibility, _CIRVisibilityKind):
+        # Already a VisibilityKind enum
+        kind = visibility
+    else:
+        raise TypeError(
+            f"visibility must be str, int, or VisibilityKind, got {type(visibility)}"
+        )
+    
+    return _CIRVisibilityAttr.get(kind)
+
+def ExtraFuncAttr(**kwargs) -> Attribute:
+    """
+    Create a CIR extra function attributes attribute.
+    
+    Args:
+        **kwargs: Keyword arguments where keys are attribute names and values are MLIR Attributes
+    
+    Returns:
+        A CIR ExtraFuncAttributesAttr (#cir.extra(...))
+    
+    Examples:
+        >>> # Empty extra attributes
+        >>> extra = ExtraFuncAttr()  # Returns #cir.extra({})
+        
+        >>> # With custom attributes
+        >>> from mlir.ir import StringAttr, UnitAttr
+        >>> extra = ExtraFuncAttr(
+        ...     inline=UnitAttr.get(),
+        ...     custom_attr=StringAttr.get("value")
+        ... )
+    
+    Note:
+        This is used for cir.FuncOp's extra_attrs parameter.
+        The dictionary can contain any additional attributes you want to attach
+        to the function operation.
+    """
+    from mlir.ir import DictAttr
+    dict_attr = DictAttr.get(kwargs if kwargs else {})
+    return _CIRExtraFuncAttributesAttr.get(dict_attr)
+
+
+def GlobalLinkageKindAttr(linkage="external") -> Attribute:
+    """
+    Create a CIR global linkage kind attribute.
+    
+    Args:
+        linkage: Linkage kind - can be:
+                 - String: "external", "internal", "weak", etc.
+                 - GlobalLinkageKind enum value
+    
+    Returns:
+        A CIR GlobalLinkageKindAttr (#cir.linkage<...>)
+    
+    Example:
+        >>> linkage = GlobalLinkageKindAttr("internal")
+        >>> linkage = GlobalLinkageKindAttr(GlobalLinkageKind.InternalLinkage)
+    """
+    if isinstance(linkage, str):
+        linkage_map = {
+            "external": _CIRGlobalLinkageKind.ExternalLinkage,
+            "available_externally": _CIRGlobalLinkageKind.AvailableExternallyLinkage,
+            "linkonce": _CIRGlobalLinkageKind.LinkOnceAnyLinkage,
+            "linkonce_odr": _CIRGlobalLinkageKind.LinkOnceODRLinkage,
+            "weak": _CIRGlobalLinkageKind.WeakAnyLinkage,
+            "weak_odr": _CIRGlobalLinkageKind.WeakODRLinkage,
+            "internal": _CIRGlobalLinkageKind.InternalLinkage,
+            "private": _CIRGlobalLinkageKind.PrivateLinkage,
+            "extern_weak": _CIRGlobalLinkageKind.ExternalWeakLinkage,
+            "common": _CIRGlobalLinkageKind.CommonLinkage,
+        }
+        if linkage.lower() not in linkage_map:
+            raise ValueError(f"Invalid linkage '{linkage}'")
+        kind = linkage_map[linkage.lower()]
+    elif isinstance(linkage, _CIRGlobalLinkageKind):
+        kind = linkage
+    else:
+        raise TypeError(f"linkage must be str or GlobalLinkageKind, got {type(linkage)}")
+    
+    return _CIRGlobalLinkageKindAttr.get(kind)
+
+
+def CallingConvAttr(conv="c") -> Attribute:
+    """
+    Create a CIR calling convention attribute.
+    
+    Args:
+        conv: Calling convention - can be:
+              - String: "c", "spir_kernel", "spir_function", etc.
+              - CallingConv enum value
+    
+    Returns:
+        A CIR CallingConvAttr (#cir.calling_conv<...>)
+    
+    Example:
+        >>> cc = CallingConvAttr("c")
+        >>> cc = CallingConvAttr(CallingConv.C)
+    """
+    if isinstance(conv, str):
+        conv_map = {
+            "c": _CIRCallingConv.C,
+            "spir_kernel": _CIRCallingConv.SpirKernel,
+            "spir_function": _CIRCallingConv.SpirFunction,
+            "opencl_kernel": _CIRCallingConv.OpenCLKernel,
+            "ptx_kernel": _CIRCallingConv.PTXKernel,
+        }
+        if conv.lower() not in conv_map:
+            raise ValueError(f"Invalid calling convention '{conv}'")
+        calling_conv = conv_map[conv.lower()]
+    elif isinstance(conv, _CIRCallingConv):
+        calling_conv = conv
+    else:
+        raise TypeError(f"conv must be str or CallingConv, got {type(conv)}")
+    
+    return _CIRCallingConvAttr.get(calling_conv)

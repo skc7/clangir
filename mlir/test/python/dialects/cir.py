@@ -398,3 +398,116 @@ def test_exception_type():
     exception = cir.ExceptionType()
     # CHECK: !cir.exception
     print(exception)
+
+
+# CHECK-LABEL: TEST: testVisibilityAttributes
+@run
+def testVisibilityAttributes():
+    # Test visibility attribute with string argument
+    vis_default = cir.VisibilityAttr("default")
+    # CHECK: #cir.visibility<default>
+    print(vis_default)
+    
+    vis_hidden = cir.VisibilityAttr("hidden")
+    # CHECK: #cir.visibility<hidden>
+    print(vis_hidden)
+    
+    vis_protected = cir.VisibilityAttr("protected")
+    # CHECK: #cir.visibility<protected>
+    print(vis_protected)
+    
+    # Test visibility attribute with integer argument
+    vis_default_int = cir.VisibilityAttr(0)
+    # CHECK: #cir.visibility<default>
+    print(vis_default_int)
+    
+    vis_hidden_int = cir.VisibilityAttr(1)
+    # CHECK: #cir.visibility<hidden>
+    print(vis_hidden_int)
+    
+    vis_protected_int = cir.VisibilityAttr(2)
+    # CHECK: #cir.visibility<protected>
+    print(vis_protected_int)
+    
+    # Test visibility attribute with VisibilityKind enum
+    vis_hidden_enum = cir.VisibilityAttr(cir.VisibilityKind.Hidden)
+    # CHECK: #cir.visibility<hidden>
+    print(vis_hidden_enum)
+    
+    # Test getting the kind from a visibility attribute
+    vis = cir.VisibilityAttr("hidden")
+    kind = vis.kind
+    # CHECK: VisibilityKind.Hidden
+    print(kind)
+
+# CHECK-LABEL: TEST: testExtraFuncAttributesAttr
+@run
+def testExtraFuncAttributesAttr():
+    # Test empty extra attributes
+    empty_extra = cir.ExtraFuncAttr()
+    # CHECK: #cir.extra<{}>
+    print(empty_extra)
+    
+    # Test with attributes
+    from mlir.ir import UnitAttr, StringAttr, IntegerAttr, IntegerType
+    
+    extra_with_attrs = cir.ExtraFuncAttr(
+        inline=UnitAttr.get(),
+        custom=StringAttr.get("value")
+    )
+    # CHECK: #cir.extra<{custom = "value", inline}>
+    print(extra_with_attrs)
+    
+    # Test getting elements from ExtraFuncAttributesAttr
+    elements = extra_with_attrs.elements
+    # CHECK: {custom = "value", inline}
+    print(elements)
+
+# CHECK-LABEL: TEST: testGlobalLinkageKindAttr
+@run
+def testGlobalLinkageKindAttr():
+    # Test with string arguments
+    linkage_external = cir.GlobalLinkageKindAttr("external")
+    # CHECK: #cir.linkage<external>
+    print(linkage_external)
+    
+    linkage_internal = cir.GlobalLinkageKindAttr("internal")
+    # CHECK: #cir.linkage<internal>
+    print(linkage_internal)
+    
+    linkage_weak = cir.GlobalLinkageKindAttr("weak")
+    # CHECK: #cir.linkage<weak>
+    print(linkage_weak)
+    
+    # Test with enum
+    linkage_enum = cir.GlobalLinkageKindAttr(cir.GlobalLinkageKind.PrivateLinkage)
+    # CHECK: #cir.linkage<cir_private>
+    print(linkage_enum)
+    
+    # Test getting the kind
+    kind = linkage_internal.kind
+    # CHECK: GlobalLinkageKind.InternalLinkage
+    print(kind)
+
+
+# CHECK-LABEL: TEST: testCallingConvAttr
+@run
+def testCallingConvAttr():
+    # Test with string arguments
+    cc_c = cir.CallingConvAttr("c")
+    # CHECK: #cir.calling_conv<c>
+    print(cc_c)
+    
+    cc_spir = cir.CallingConvAttr("spir_kernel")
+    # CHECK: #cir.calling_conv<spir_kernel>
+    print(cc_spir)
+    
+    # Test with enum
+    cc_enum = cir.CallingConvAttr(cir.CallingConv.PTXKernel)
+    # CHECK: #cir.calling_conv<ptx_kernel>
+    print(cc_enum)
+    
+    # Test getting the convention
+    conv = cc_spir.conv
+    # CHECK: CallingConv.SpirKernel
+    print(conv)
