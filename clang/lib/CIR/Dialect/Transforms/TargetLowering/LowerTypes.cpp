@@ -161,7 +161,8 @@ mlir::Type LowerTypes::convertType(mlir::Type t) {
   /// It's kept here for codegen parity's sake.
 
   // Certain CIR types are already ABI-specific, so we just return them.
-  if (mlir::isa<BoolType, IntType, SingleType, DoubleType>(t)) {
+  if (mlir::isa<BoolType, IntType, SingleType, DoubleType, VoidType,
+                PointerType>(t)) {
     return t;
   }
 
