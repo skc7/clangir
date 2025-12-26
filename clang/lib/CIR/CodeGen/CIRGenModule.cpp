@@ -1406,6 +1406,69 @@ void CIRGenModule::maybeHandleStaticInExternC(const SomeDecl *d,
   assert(0 && "not implemented");
 }
 
+void CIRGenModule::addUsedGlobal(cir::GlobalOp GV) {
+  assert(!GV.isDeclaration() &&
+         "Only globals with definition can force usage.");
+  LLVMUsed.emplace_back(GV);
+}
+
+void CIRGenModule::addCompilerUsedGlobal(cir::GlobalOp GV) {
+  assert(!GV.isDeclaration() &&
+         "Only globals with definition can force usage.");
+  LLVMCompilerUsed.emplace_back(GV);
+}
+
+void CIRGenModule::addUsedOrCompilerUsedGlobal(cir::GlobalOp GV) {
+  assert(!GV.isDeclaration() &&
+         "Only globals with definition can force usage.");
+  if (getTriple().isOSBinFormatELF())
+    LLVMCompilerUsed.emplace_back(GV);
+  else
+    LLVMUsed.emplace_back(GV);
+}
+
+static void emitUsed(CIRGenModule &cgm, StringRef name,
+                     std::vector<cir::GlobalOp> &list) {
+  // Don't create llvm.used if there is no need.
+  if (list.empty())
+    return;
+
+  // Convert List to what ConstantArray needs.
+  auto &builder = cgm.getBuilder();
+  auto loc = builder.getUnknownLoc();
+  llvm::SmallVector<mlir::Attribute, 8> usedArray;
+  usedArray.resize(list.size());
+  for (unsigned i = 0, e = list.size(); i != e; ++i) {
+    usedArray[i] = cir::GlobalViewAttr::get(
+        cgm.VoidPtrTy, mlir::FlatSymbolRefAttr::get(list[i].getSymNameAttr()));
+  }
+
+  if (usedArray.empty())
+    return;
+  auto arrayTy = cir::ArrayType::get(cgm.VoidPtrTy, usedArray.size());
+
+  auto initAttr = cir::ConstArrayAttr::get(
+      arrayTy, mlir::ArrayAttr::get(&cgm.getMLIRContext(), usedArray));
+
+  // Use target's global address space
+  mlir::ptr::MemorySpaceAttrInterface addrSpace =
+      cir::toCIRLangAddressSpaceAttr(&cgm.getMLIRContext(),
+                                     cgm.getGlobalVarAddressSpace(nullptr));
+
+  auto gv = CIRGenModule::createGlobalOp(
+      cgm, loc, name, arrayTy,
+      /*isConstant=*/false,
+      /*addrSpace=*/addrSpace,
+      /*insertPoint=*/nullptr, cir::GlobalLinkageKind::AppendingLinkage);
+  gv.setInitialValueAttr(initAttr);
+  gv.setSection("llvm.metadata");
+}
+
+void CIRGenModule::emitLLVMUsed() {
+  emitUsed(*this, "llvm.used", LLVMUsed);
+  emitUsed(*this, "llvm.compiler.used", LLVMCompilerUsed);
+}
+
 void CIRGenModule::emitGlobalVarDefinition(const clang::VarDecl *d,
                                            bool isTentative) {
   // TODO(cir):
@@ -3666,7 +3729,32 @@ void CIRGenModule::Release() {
     llvm_unreachable("NYI");
   }
 
-  assert(!MissingFeatures::emitLLVMUsed());
+  if (getLangOpts().HIP) {
+    // Emit a unique ID so that host and device binaries from the same
+    // compilation unit can be associated.
+    std::string cuidName =
+        ("__hip_cuid_" + getASTContext().getCUIDHash()).str();
+    auto int8Ty = cir::IntType::get(&getMLIRContext(), 8, /*isSigned=*/false);
+    auto loc = builder.getUnknownLoc();
+    mlir::ptr::MemorySpaceAttrInterface addrSpace =
+        cir::toCIRLangAddressSpaceAttr(&getMLIRContext(),
+                                       getGlobalVarAddressSpace(nullptr));
+
+    auto gv = createGlobalOp(*this, loc, cuidName, int8Ty,
+                             /*isConstant=*/false, addrSpace,
+                             /*insertPoint=*/nullptr,
+                             cir::GlobalLinkageKind::ExternalLinkage);
+    // Initialize with zero
+    auto zeroAttr = cir::IntAttr::get(int8Ty, 0);
+    gv.setInitialValueAttr(zeroAttr);
+    // External linkage requires public visibility
+    mlir::SymbolTable::setSymbolVisibility(
+        gv, mlir::SymbolTable::Visibility::Public);
+
+    addCompilerUsedGlobal(gv);
+  }
+
+  emitLLVMUsed();
   assert(!MissingFeatures::sanStats());
 
   if (codeGenOpts.Autolink && (astContext.getLangOpts().Modules ||
