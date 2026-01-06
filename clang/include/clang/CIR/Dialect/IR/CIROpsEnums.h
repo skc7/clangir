@@ -59,6 +59,10 @@ LLVM_ATTRIBUTE_UNUSED static bool isCommonLinkage(GlobalLinkageKind Linkage) {
   return Linkage == GlobalLinkageKind::CommonLinkage;
 }
 LLVM_ATTRIBUTE_UNUSED static bool
+isAppendingLinkage(GlobalLinkageKind Linkage) {
+  return Linkage == GlobalLinkageKind::AppendingLinkage;
+}
+LLVM_ATTRIBUTE_UNUSED static bool
 isValidDeclarationLinkage(GlobalLinkageKind Linkage) {
   return isExternalWeakLinkage(Linkage) || isExternalLinkage(Linkage);
 }
@@ -81,6 +85,7 @@ isInterposableLinkage(GlobalLinkageKind Linkage) {
     // The above three cannot be overridden but can be de-refined.
 
   case GlobalLinkageKind::ExternalLinkage:
+  case GlobalLinkageKind::AppendingLinkage:
   case GlobalLinkageKind::InternalLinkage:
   case GlobalLinkageKind::PrivateLinkage:
     return false;
