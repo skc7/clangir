@@ -855,7 +855,6 @@ mlir::LLVM::Linkage convertLinkage(cir::GlobalLinkageKind linkage) {
   case CIR::WeakODRLinkage:
     return LLVM::WeakODR;
   };
-  llvm_unreachable("Unknown linkage kind");
 }
 
 static mlir::FailureOr<mlir::Block *>
