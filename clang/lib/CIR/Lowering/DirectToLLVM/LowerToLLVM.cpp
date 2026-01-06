@@ -798,10 +798,7 @@ mlir::Value CirAttrToValue::visitCirAttr(cir::GlobalViewAttr globalAttr) {
   }
 
   if (auto ptrTy = mlir::dyn_cast<cir::PointerType>(globalAttr.getType())) {
-    mlir::Type convertedTy = converter->convertType(ptrTy);
-    assert(mlir::isa<mlir::LLVM::LLVMPointerType>(convertedTy) &&
-           "expected CIR pointer to lower to LLVM pointer");
-    auto llvmDstTy = mlir::cast<mlir::LLVM::LLVMPointerType>(convertedTy);
+    auto llvmDstTy = converter->convertType<mlir::LLVM::LLVMPointerType>(ptrTy);
     unsigned dstAddrSpace = llvmDstTy.getAddressSpace();
 
     // Check if address spaces differ - need addrspacecast
