@@ -86,6 +86,26 @@ private:
             mlir::dyn_cast<cir::UWTableAttr>(attribute.getValue()))
       llvmModule->setUwtable(convertUWTableKind(uwTableAttr.getValue()));
 
+    // AMDGPU module flags
+    if (attribute.getName() == "cir.amdhsa_code_object_version") {
+      if (auto intAttr =
+              mlir::dyn_cast<mlir::IntegerAttr>(attribute.getValue())) {
+        llvmModule->addModuleFlag(llvm::Module::Error,
+                                  "amdhsa_code_object_version",
+                                  static_cast<uint32_t>(intAttr.getInt()));
+      }
+    }
+
+    if (attribute.getName() == "cir.amdgpu_printf_kind") {
+      if (auto strAttr =
+              mlir::dyn_cast<mlir::StringAttr>(attribute.getValue())) {
+        llvm::MDString *mdStr =
+            llvm::MDString::get(llvmContext, strAttr.getValue());
+        llvmModule->addModuleFlag(llvm::Module::Error, "amdgpu_printf_kind",
+                                  mdStr);
+      }
+    }
+
     // Drop ammended CIR attribute from LLVM op.
     module->removeAttr(attribute.getName());
   }
