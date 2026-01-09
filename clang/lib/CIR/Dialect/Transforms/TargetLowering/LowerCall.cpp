@@ -277,8 +277,7 @@ const LowerFunctionInfo &LowerTypes::arrangeFunctionDeclaration(FuncOp fnOp) {
   }
 
   // Extract calling convention from FuncOp.
-  cir::CallingConv callingConv = fnOp.getCallingConv();
-  return arrangeFreeFunctionType(FTy, callingConv);
+  return arrangeFreeFunctionType(FTy, fnOp.getCallingConv());
 }
 
 /// Figure out the rules for calling a function with the given formal
