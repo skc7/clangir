@@ -1406,25 +1406,25 @@ void CIRGenModule::maybeHandleStaticInExternC(const SomeDecl *d,
   assert(0 && "not implemented");
 }
 
-void CIRGenModule::addUsedGlobal(cir::GlobalOp GV) {
-  assert(!GV.isDeclaration() &&
+void CIRGenModule::addUsedGlobal(cir::GlobalOp gv) {
+  assert(!gv.isDeclaration() &&
          "Only globals with definition can force usage.");
-  LLVMUsed.emplace_back(GV);
+  LLVMUsed.emplace_back(gv);
 }
 
-void CIRGenModule::addCompilerUsedGlobal(cir::GlobalOp GV) {
-  assert(!GV.isDeclaration() &&
+void CIRGenModule::addCompilerUsedGlobal(cir::GlobalOp gv) {
+  assert(!gv.isDeclaration() &&
          "Only globals with definition can force usage.");
-  LLVMCompilerUsed.emplace_back(GV);
+  LLVMCompilerUsed.emplace_back(gv);
 }
 
-void CIRGenModule::addUsedOrCompilerUsedGlobal(cir::GlobalOp GV) {
-  assert(!GV.isDeclaration() &&
+void CIRGenModule::addUsedOrCompilerUsedGlobal(cir::GlobalOp gv) {
+  assert(!gv.isDeclaration() &&
          "Only globals with definition can force usage.");
   if (getTriple().isOSBinFormatELF())
-    LLVMCompilerUsed.emplace_back(GV);
+    LLVMCompilerUsed.emplace_back(gv);
   else
-    LLVMUsed.emplace_back(GV);
+    LLVMUsed.emplace_back(gv);
 }
 
 static void emitUsed(CIRGenModule &cgm, StringRef name,

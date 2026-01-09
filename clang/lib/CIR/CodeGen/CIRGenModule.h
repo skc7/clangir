@@ -234,13 +234,13 @@ public:
   void maybeHandleStaticInExternC(const SomeDecl *D, cir::GlobalOp GV);
 
   /// Add a global value to the LLVMUsed list.
-  void addUsedGlobal(cir::GlobalOp GV);
+  void addUsedGlobal(cir::GlobalOp gv);
 
   /// Add a global value to the LLVMCompilerUsed list.
-  void addCompilerUsedGlobal(cir::GlobalOp GV);
+  void addCompilerUsedGlobal(cir::GlobalOp gv);
 
   /// Add a global to a list to be added to the llvm.compiler.used metadata.
-  void addUsedOrCompilerUsedGlobal(cir::GlobalOp GV);
+  void addUsedOrCompilerUsedGlobal(cir::GlobalOp gv);
 
   /// Emit llvm.used and llvm.compiler.used globals.
   void emitLLVMUsed();
