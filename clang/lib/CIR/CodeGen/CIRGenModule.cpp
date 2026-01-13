@@ -3722,21 +3722,7 @@ void CIRGenModule::Release() {
   }
 
   if (getTriple().isAMDGPU()) {
-    if (target.getTargetOpts().CodeObjectVersion !=
-        llvm::CodeObjectVersionKind::COV_None) {
-      theModule->setAttr(
-          "cir.amdhsa_code_object_version",
-          builder.getI32IntegerAttr(target.getTargetOpts().CodeObjectVersion));
-    }
-    if (langOpts.HIP) {
-      llvm::StringRef printfKind =
-          target.getTargetOpts().AMDGPUPrintfKindVal ==
-                  TargetOptions::AMDGPUPrintfKind::Hostcall
-              ? "hostcall"
-              : "buffered";
-      theModule->setAttr("cir.amdgpu_printf_kind",
-                         builder.getStringAttr(printfKind));
-    }
+    emitAMDGPUMetadata();
   }
 
   // Emit a global array containing all external kernels or device variables

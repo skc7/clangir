@@ -1005,6 +1005,9 @@ public:
   /// Emits OpenCL specific Metadata e.g. OpenCL version.
   void emitOpenCLMetadata();
 
+  /// Emits AMDGPU specific Metadata e.g. code object version.
+  void emitAMDGPUMetadata();
+
   /// Create cir::AnnotationAttr which contains the annotation
   /// information for a given GlobalValue. Notice that a GlobalValue could
   /// have multiple annotations, and this function creates attribute for
