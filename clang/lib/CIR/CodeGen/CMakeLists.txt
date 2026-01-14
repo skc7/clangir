@@ -50,6 +50,7 @@ add_clang_library(clangCIR
   CIRRecordLayoutBuilder.cpp
   ConstantInitBuilder.cpp
   TargetInfo.cpp
+  Targets/AMDGPU.cpp
 
   DEPENDS
   MLIRCIR

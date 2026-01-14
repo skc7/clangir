@@ -161,6 +161,10 @@ std::unique_ptr<TargetCIRGenInfo> createNVPTXTargetCIRGenInfo(CIRGenTypes &CGT);
 std::unique_ptr<TargetCIRGenInfo>
 createAMDGPUTargetCIRGenInfo(CIRGenTypes &CGT);
 
+/// Set AMDGPU-specific function attributes for HIP/OpenCL kernels.
+void setAMDGPUTargetFunctionAttributes(const clang::Decl *decl,
+                                       cir::FuncOp func, CIRGenModule &cgm);
+
 } // namespace clang::CIRGen
 
 #endif
